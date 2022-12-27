@@ -1,6 +1,7 @@
 package minhash
 
 import scala.math.min
+import scala.annotation.tailrec
 import java.nio.ByteBuffer
 import java.nio.LongBuffer
 
@@ -10,6 +11,12 @@ trait MinHash {
   type MinHash = Array[Long]
   type SerializedMinHash = Array[Byte]
   val trivialMinHash: MinHash = Array.fill[Long](numPerm)(maxHash)
+
+  @tailrec
+  final def updateRecursively(mh: MinHash, ls: List[String]): MinHash = ls match {
+    case s :: ss => updateRecursively(mh.update(s), ss)
+    case _ => mh
+  }
 
   implicit class MinHashOps(xs: MinHash) {
 
@@ -23,11 +30,6 @@ trait MinHash {
     }
 
     def update(s: String): MinHash = update(s.getBytes)
-
-    def update(ls: Seq[String]): MinHash = ls match {
-      case s :: ss => update(s).update(ss)
-      case _ => xs
-    }
 
     def countUniques: Double = {
       val k = numPerm.toDouble

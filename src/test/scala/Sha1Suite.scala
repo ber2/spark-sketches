@@ -3,12 +3,7 @@ package minhash
 import org.scalacheck.{Gen, Properties}
 import org.scalacheck.Prop.forAll
 
-class Sha1Hash32Spec extends PropBaseSpec {
-
-  val hashes: Gen[Sha1Hash32] = for {
-    s <- Gen.alphaNumStr
-  } yield Sha1Hash32.digest(s)
-
+class Sha1Hash32Spec extends BaseSpec {
   behavior of "Sha1Hash32 with the word 'hello'"
 
   val hash = Sha1Hash32.digest("hello")
@@ -24,18 +19,23 @@ class Sha1Hash32Spec extends PropBaseSpec {
   it should "export into a positive 32-bit integer of type Long" in {
     assertResult(2868168221L)(hash.toLong)
   }
+}
 
-  behavior of "Sha1Hash32 with general strings"
+class Sha1Hash32Prop extends Properties("Sha1Hash32") {
 
-  it should "build byte arrays of length 4" in forAll(hashes) {
+  val hashes: Gen[Sha1Hash32] = for {
+    s <- Gen.alphaNumStr
+  } yield Sha1Hash32.digest(s)
+
+  property("should build byte arrays of length 4") = forAll(hashes) {
     (h: Sha1Hash32) => h.digest.length == 4
   }
 
-  it should "export hex strings of length 8" in forAll(hashes) {
+  property("should export hex strings of length 8") = forAll(hashes) {
     (h: Sha1Hash32) => h.toHex.length == 8
   }
 
-  it should "export a 32-bit positive Long" in forAll(hashes) {
+  property("should export a 32-bit positive Long") = forAll(hashes) {
     (h: Sha1Hash32) => (0L < h.toLong) && (h.toLong <= Constants.maxHash)
   }
 

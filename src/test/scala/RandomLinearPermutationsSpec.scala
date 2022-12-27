@@ -23,7 +23,7 @@ trait LinearPermutationsBehavior { this: BaseSpec =>
 }
 
 class RandomLinearPermutationsSpec
-    extends PropBaseSpec
+    extends BaseSpec
     with LinearPermutationsBehavior {
 
   val weights = RandomLinearPermutations.w
@@ -33,12 +33,13 @@ class RandomLinearPermutationsSpec
 
   "Biases" should behave like permutationArray(biases, 0)
 
-  "Random linear permutations" should "have only positive array values" in forAll {
-    (v: Long) => RandomLinearPermutations(v).foreach { _ should be >= 0L }
-  }
+}
 
-  it should "have 32-bit Long array values" in forAll { (v: Long) =>
-    RandomLinearPermutations(v).foreach { _ should be <= Constants.maxHash }
+class RandomLinearPermutationsProp
+    extends Properties("RandomLinearPermutations") {
+
+  property("should have 32-bit Long array values") = forAll { (v: Long) =>
+    RandomLinearPermutations(v).forall { d => d >= 0L && d <= Constants.maxHash }
   }
 
 }
