@@ -13,14 +13,14 @@ trait MinHash {
   val trivialMinHash: MinHash = Array.fill[Long](numPerm)(maxHash)
 
   @tailrec
-  final def updateRecursively(mh: MinHash, ls: List[String]): MinHash = ls match {
-    case s :: ss => updateRecursively(mh.update(s), ss)
+  final def addBatch(mh: MinHash, ls: List[String]): MinHash = ls match {
+    case s :: ss => addBatch(mh.add(s), ss)
     case _ => mh
   }
 
   implicit class MinHashOps(xs: MinHash) {
 
-    def update(b: Array[Byte]): MinHash = {
+    def add(b: Array[Byte]): MinHash = {
       val h = Sha1Hash32(b).toLong
       val ps: Array[Long] = RandomLinearPermutations(h)
 
@@ -29,7 +29,7 @@ trait MinHash {
         .map { case (h: Long, p: Long) => min(h, p) }
     }
 
-    def update(s: String): MinHash = update(s.getBytes)
+    def add(s: String): MinHash = add(s.getBytes)
 
     def countUniques: Double = {
       val k = numPerm.toDouble

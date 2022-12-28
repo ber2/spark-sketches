@@ -10,7 +10,7 @@ object SparkUdfs extends MinHash {
   private object MinHashPreaggregator
       extends Aggregator[String, MinHash, SerializedMinHash] {
     def zero: MinHash = trivialMinHash
-    def reduce(b: MinHash, a: String): MinHash = b.update(a)
+    def reduce(b: MinHash, a: String): MinHash = b.add(a)
     def merge(b1: MinHash, b2: MinHash): MinHash = b1.merge(b2)
     def finish(reduction: MinHash): SerializedMinHash = reduction.toBytes
     def bufferEncoder: Encoder[MinHash] = Encoders.javaSerialization[MinHash]

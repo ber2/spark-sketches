@@ -1,11 +1,5 @@
 package minhash
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalacheck.{Gen, Properties}
-import org.scalacheck.Prop.forAll
-
 trait LinearPermutationsBehavior { this: BaseSpec =>
   def permutationArray(newArray: => Array[Long], minValue: Long) {
     it should "have expected length" in {
@@ -32,14 +26,5 @@ class RandomLinearPermutationsSpec
   "Weights" should behave like permutationArray(weights, 1)
 
   "Biases" should behave like permutationArray(biases, 0)
-
-}
-
-class RandomLinearPermutationsProp
-    extends Properties("RandomLinearPermutations") {
-
-  property("should have 32-bit Long array values") = forAll { (v: Long) =>
-    RandomLinearPermutations(v).forall { d => d >= 0L && d <= Constants.maxHash }
-  }
 
 }
