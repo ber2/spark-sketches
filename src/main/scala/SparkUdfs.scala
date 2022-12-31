@@ -32,13 +32,19 @@ object SparkUdfs extends MinHash {
     round(mh.countUniques)
   }
 
-  private def jaccardPreUdf(left: SerializedMinHash, right: SerializedMinHash): Double = {
+  private def jaccardPreUdf(
+      left: SerializedMinHash,
+      right: SerializedMinHash
+  ): Double = {
     val leftHash = left.toLong
     val rightHash = right.toLong
     leftHash.jaccard(rightHash)
   }
 
-  private def overlapPreUdf(left: SerializedMinHash, right: SerializedMinHash): Long = {
+  private def overlapPreUdf(
+      left: SerializedMinHash,
+      right: SerializedMinHash
+  ): Long = {
     val leftHash = left.toLong
     val rightHash = right.toLong
 

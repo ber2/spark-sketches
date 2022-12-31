@@ -1,9 +1,8 @@
 package minhash
 
-import scala.math.min
 import scala.annotation.tailrec
-import java.nio.ByteBuffer
-import java.nio.LongBuffer
+import scala.math.min
+import java.nio.{ByteBuffer, LongBuffer}
 
 import Constants.{numPerm, seed, maxHash, hashValueByteSize}
 
@@ -15,7 +14,7 @@ trait MinHash {
   @tailrec
   final def addBatch(mh: MinHash, ls: List[String]): MinHash = ls match {
     case s :: ss => addBatch(mh.add(s), ss)
-    case _ => mh
+    case _       => mh
   }
 
   implicit class MinHashOps(xs: MinHash) {
@@ -55,7 +54,7 @@ trait MinHash {
 
     def toBytes: SerializedMinHash = {
       val bb = ByteBuffer.allocate(hashValueByteSize * numPerm)
-      xs.foreach{ x => bb.putLong(x) }
+      xs.foreach { x => bb.putLong(x) }
       bb.array
     }
   }

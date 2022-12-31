@@ -1,7 +1,7 @@
 package minhash
 
 trait LinearPermutationsBehavior { this: BaseSpec =>
-  def permutationArray(newArray: => Array[Long], minValue: Long) {
+  def permutationArray(newArray: => Array[Long], minValue: Long): Unit = {
     it should "have expected length" in {
       newArray.length should equal(Constants.numPerm)
     }
