@@ -1,5 +1,7 @@
 package minhash
 
+import scala.math.abs
+
 class MinHashSpec extends BaseSpec with MinHash {
 
   behavior of "Trivial minhash"
@@ -47,6 +49,18 @@ class MinHashSpec extends BaseSpec with MinHash {
 
   it should "serialize and deserialize" in {
     trivialMinHash.toBytes.toLong should ===(trivialMinHash)
+  }
+
+  behavior of "The minhash of a large collection"
+
+  it should "not overflow counting uniques" in {
+    val collectionSize = 90000
+    val documents = (0 until collectionSize).map(d => s"document_$d").toList
+    val mh = addBatch(trivialMinHash, documents)
+
+    val estimationError = abs(mh.countUniques - collectionSize.toDouble) / collectionSize.toDouble
+
+    estimationError should be < 0.08
   }
 
 }

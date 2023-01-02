@@ -20,7 +20,7 @@ trait MinHash {
   implicit class MinHashOps(xs: MinHash) {
 
     def add(b: Array[Byte]): MinHash = {
-      val h = Sha1Hash32(b).toLong
+      val h = Sha1Hash32.digest(b)
       val ps: Array[Long] = RandomLinearPermutations(h)
 
       xs
@@ -32,7 +32,7 @@ trait MinHash {
 
     def countUniques: Double = {
       val k = numPerm.toDouble
-      val s = xs.map { _ / maxHash.toDouble }.sum
+      val s = xs.sum.toDouble / maxHash.toDouble
       k / s - 1.0
     }
 
