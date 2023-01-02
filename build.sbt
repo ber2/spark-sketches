@@ -4,7 +4,7 @@ lazy val root = (project in file(".")).
       organization := "com.example",
       scalaVersion := "2.12.12"
     )),
-    name := "scalatest-example"
+    name := "spark-minhash"
   )
 
 val libVersions = Map(
