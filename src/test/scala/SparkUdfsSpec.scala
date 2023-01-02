@@ -72,7 +72,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
     val left = aggData.filter($"key_1" === "key_1_1").drop($"cnt")
     val right = aggData.filter($"key_1" === "key_1_2").drop($"cnt")
 
-    val expectedJaccard = Seq(0.359375).toDF("jaccard")
+    val expectedJaccard = Seq(0.328125).toDF("jaccard")
 
     val actualJaccard =
       left

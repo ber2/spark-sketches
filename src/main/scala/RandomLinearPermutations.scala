@@ -10,7 +10,7 @@ object RandomLinearPermutations {
   private def nextLong(min: Long, max: Long = mersennePrime): Long =
     generator.nextLong match {
       case x if (x >= min && x <= max) => x
-      case _                           => nextLong(min)
+      case _                           => nextLong(min, max)
     }
 
   val w: Array[Long] = Array.fill[Long](numPerm)(nextLong(1))
