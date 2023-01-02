@@ -2,7 +2,7 @@ package minhash
 
 import scala.annotation.tailrec
 import scala.math.min
-import java.nio.{ByteBuffer, LongBuffer}
+import java.nio.{ByteBuffer, LongBuffer, Buffer}
 
 import Constants.{numPerm, seed, maxHash, hashValueByteSize}
 
@@ -62,9 +62,10 @@ trait MinHash {
   implicit class SerializedMinHashOps(ys: SerializedMinHash) {
     def toLong: MinHash = {
       val bb = ByteBuffer.allocate(hashValueByteSize * numPerm)
+      val bbb: Buffer = bb
 
       bb.put(ys)
-      bb.position(0)
+      bbb.position(0)
 
       val xs = Array.fill[Long](numPerm)(1L)
 
