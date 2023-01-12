@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 import scala.math.{floor, round, abs}
 import org.scalacheck.{Gen, Properties}

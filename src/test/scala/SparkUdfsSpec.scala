@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 import org.apache.spark.sql.DataFrame
 

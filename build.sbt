@@ -1,7 +1,17 @@
 lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(
-      organization := "com.example",
+      organization := "com.ber2",
+      homepage := Some(url("https://github.com/ber2/spark-minhash")),
+      licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+      developers := List(
+        Developer(
+          "ber2",
+          "Alberto Camara",
+          "camara@protonmail.com",
+          url("https://ber2.github.io")
+        )
+      ),
       scalaVersion := "2.12.12"
     )),
     name := "spark-minhash"

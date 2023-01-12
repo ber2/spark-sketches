@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 import scala.math.{round, min}
 import org.apache.spark.sql.{Encoder, Encoders, SparkSession}

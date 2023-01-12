@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 class Sha1Hash32Spec extends BaseSpec {
   behavior of "Sha1Hash32 with the word 'hello'"
