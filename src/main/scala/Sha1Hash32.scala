@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 import java.security.MessageDigest
 import java.nio.{ByteBuffer, ByteOrder}

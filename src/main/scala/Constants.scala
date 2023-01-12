@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 object Constants {
   val mersennePrime: Long = (1L << 61) - 1
