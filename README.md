@@ -1,5 +1,7 @@
 # spark-minhash
 
+:warning: __Notice!__ This package is still __experimental__ and __under development__, ie: not production-ready. Issues and PRs are most welcome!
+
 This is an implementation of the [MinHash algorithm](https://en.wikipedia.org/wiki/MinHash) in **Scala**.
 
 This algorithm allows to store a collection of values in a digested way, in the form of a so-called _sketch_. One may think that, instead of storing the original information, the _sketch_ stores a summary of the values, in such a way enough information is retained to compute:

@@ -1,4 +1,4 @@
-package minhash
+package com.ber2.spark.minhash
 
 import scala.annotation.tailrec
 import scala.math.min
