@@ -1,9 +1,9 @@
 package com.ber2.spark.minhash
 
 trait LinearPermutationsBehavior { this: BaseSpec =>
-  def permutationArray(newArray: => Array[Long], minValue: Long): Unit = {
+  def permutationArray(newArray: => Array[Long], minValue: Long, numPerm: Int): Unit = {
     it should "have expected length" in {
-      newArray.length should equal(Constants.numPerm)
+      newArray.length should equal(numPerm)
     }
 
     it should "have values below Mersenne prime" in {
@@ -20,11 +20,14 @@ class RandomLinearPermutationsSpec
     extends BaseSpec
     with LinearPermutationsBehavior {
 
-  val weights = RandomLinearPermutations.w
-  val biases = RandomLinearPermutations.b
+  val numPerm: Short = 256
 
-  "Weights" should behave like permutationArray(weights, 1)
+  val permutations = new RandomLinearPermutations(numPerm)
+  val weights = permutations.w
+  val biases = permutations.b
 
-  "Biases" should behave like permutationArray(biases, 0)
+  "Weights" should behave like permutationArray(weights, 1L, numPerm)
+
+  "Biases" should behave like permutationArray(biases, 0L, numPerm)
 
 }

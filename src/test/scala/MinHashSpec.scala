@@ -2,53 +2,68 @@ package com.ber2.spark.minhash
 
 import scala.math.abs
 
-class MinHashSpec extends BaseSpec with MinHash {
+class MinHashSpec extends BaseSpec {
 
   behavior of "Trivial minhash"
 
+  val numPerm: Short = 256
+  val mh = MinHash.trivialMinHash(numPerm)
+  val hv = mh.hashValues
+
   it should "have length given by number of permutations" in {
-    trivialMinHash.length should equal(Constants.numPerm)
+    hv.length should equal(numPerm)
   }
 
   it should "have the maximum hash in each value" in {
-    all(trivialMinHash) should ===(Constants.maxHash)
+    all(hv) should ===(Constants.maxHash)
   }
 
   it should "get smaller minimum if updated" in {
-    val updated = trivialMinHash.add(Array[Byte](1))
-    updated.min should be < Constants.maxHash
+    val updated = mh.add(Array[Byte](1))
+    updated.hashValues.min should be < Constants.maxHash
   }
 
   it should "have zero count" in {
-    trivialMinHash.countUniques should ===(0.0)
+    mh.countUniques should ===(0.0)
   }
 
   it should "have Jaccard one with itself" in {
-    trivialMinHash.jaccard(trivialMinHash) should ===(1.0)
+    mh.jaccard(mh) should ===(1.0)
   }
 
   it should "trivially merge with itself" in {
-    trivialMinHash.merge(trivialMinHash) should ===(trivialMinHash)
+    assert(mh.merge(mh).isEqual(mh))
   }
 
   it should "serialize to length" in {
-    trivialMinHash.toBytes.length should equal(
-      Constants.numPerm * Constants.hashValueByteSize
+    mh.serialized.bytes.length should equal(
+      numPerm * Constants.hashValueByteSize
     )
   }
 
   it should "serialize to expected values" in {
     val oneLongInBytes = Array[Byte](0, 0, 0, 0, -1, -1, -1, -1)
     var expectedValue = Array.emptyByteArray
-    (1 to Constants.numPerm).foreach(_ =>
-      expectedValue = expectedValue ++ oneLongInBytes
-    )
+    (1 to numPerm).foreach(_ => expectedValue = expectedValue ++ oneLongInBytes)
 
-    trivialMinHash.toBytes should ===(expectedValue)
+    mh.serialized.bytes should ===(expectedValue)
   }
 
   it should "serialize and deserialize" in {
-    trivialMinHash.toBytes.toLong should ===(trivialMinHash)
+    assert(SerializedMinHash(mh.serialized.bytes).deserialize.isEqual(mh))
+  }
+
+  behavior of "Two trivial minhashes with differing permutation numbers"
+
+  val mh1 = MinHash.trivialMinHash(128)
+  val mh2 = MinHash.trivialMinHash(256)
+
+  it should "fail when trying to merge" in {
+    an[IllegalArgumentException] should be thrownBy (mh1.merge(mh2))
+  }
+
+  it should "fail when computing Jaccard index" in {
+    an[IllegalArgumentException] should be thrownBy (mh1.jaccard(mh2))
   }
 
   behavior of "The minhash of a large collection"
@@ -56,9 +71,11 @@ class MinHashSpec extends BaseSpec with MinHash {
   it should "not overflow counting uniques" in {
     val collectionSize = 90000
     val documents = (0 until collectionSize).map(d => s"document_$d").toList
-    val mh = addBatch(trivialMinHash, documents)
+    val largeMh = MinHash.addBatch(mh, documents)
 
-    val estimationError = abs(mh.countUniques - collectionSize.toDouble) / collectionSize.toDouble
+    val estimationError = abs(
+      largeMh.countUniques - collectionSize.toDouble
+    ) / collectionSize.toDouble
 
     estimationError should be < 0.08
   }

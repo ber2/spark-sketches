@@ -7,5 +7,5 @@ object Constants {
   val hashValueByteSize: Int = 8
 
   val seed: Int = 1
-  val numPerm: Int = 256
+  val numPerm: Short = 256
 }
