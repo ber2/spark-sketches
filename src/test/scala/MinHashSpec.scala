@@ -37,7 +37,7 @@ class MinHashSpec extends BaseSpec {
 
   it should "serialize to length" in {
     mh.serialized.bytes.length should equal(
-      numPerm * Constants.hashValueByteSize
+      numPerm * Constants.bytesInALong
     )
   }
 
@@ -50,7 +50,10 @@ class MinHashSpec extends BaseSpec {
   }
 
   it should "serialize and deserialize" in {
-    assert(SerializedMinHash(mh.serialized.bytes).deserialize.isEqual(mh))
+    val bytes = mh.serialized.bytes
+    val smh = SerializedMinHash(bytes)
+    val dsmh = smh.deserialize
+    assert(dsmh.isEqual(mh))
   }
 
   behavior of "Two trivial minhashes with differing permutation numbers"
@@ -66,11 +69,16 @@ class MinHashSpec extends BaseSpec {
     an[IllegalArgumentException] should be thrownBy (mh1.jaccard(mh2))
   }
 
+  def mkDocs(start: Int, end: Int): List[String] =
+    (start until end)
+      .map(d => s"document_$d")
+      .toList
+
   behavior of "The minhash of a large collection"
 
   it should "not overflow counting uniques" in {
     val collectionSize = 90000
-    val documents = (0 until collectionSize).map(d => s"document_$d").toList
+    val documents = mkDocs(0, collectionSize)
     val largeMh = MinHash.addBatch(mh, documents)
 
     val estimationError = abs(
@@ -78,6 +86,55 @@ class MinHashSpec extends BaseSpec {
     ) / collectionSize.toDouble
 
     estimationError should be < 0.08
+  }
+
+  behavior of "Increasing the number of permutations"
+
+  it should "improve accuracy of uniques count" in {
+    val initial = mkDocs(0, 10000)
+    val repeats = mkDocs(0, 200)
+    val allDocs = initial ++ repeats
+
+    val expectedUniques = 10000
+
+    val uniqueCountsAbsoluteErrors = List(256, 128, 64)
+      .map { p =>
+        MinHash
+          .addBatch(MinHash.trivialMinHash(p.toShort), allDocs)
+          .countUniques
+      }
+      .map { (estimation: Double) =>
+        abs(expectedUniques - estimation)
+      }
+
+    uniqueCountsAbsoluteErrors should equal(uniqueCountsAbsoluteErrors.sorted)
+  }
+
+  it should "improve accuracy of Jaccard index" in {
+    val common = mkDocs(0, 2000)
+    val left = mkDocs(2000, 4000)
+    val right = mkDocs(4000, 6000)
+
+    val docsLeft = common ++ left
+    val docsRight = common ++ right
+
+    val expectedJaccard = 1 / (3.toDouble)
+
+    val jaccards = List(512, 256, 128)
+      .map { p =>
+        val mhLeft =
+          MinHash.addBatch(MinHash.trivialMinHash(p.toShort), docsLeft)
+        val mhRight =
+          MinHash.addBatch(MinHash.trivialMinHash(p.toShort), docsRight)
+        mhLeft.jaccard(mhRight)
+      }
+
+    val jaccardErrors = jaccards
+      .map { (estimation: Double) =>
+        abs(expectedJaccard - estimation)
+      }
+
+    jaccardErrors should equal(jaccardErrors.sorted)
   }
 
 }

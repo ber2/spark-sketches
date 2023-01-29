@@ -33,8 +33,8 @@ class SparkUdfsSpec extends SparkBaseSpec {
 
     data
       .groupBy($"key_1")
-      .agg(SparkUdfs.aggStringToHash($"document").as("minhash"))
-      .withColumn("cnt", SparkUdfs.countUniques($"minhash"))
+      .agg(SparkUdfs256.aggStringToHash($"document").as("minhash"))
+      .withColumn("cnt", SparkUdfs256.countUniques($"minhash"))
   }
 
   it should "aggregate and merge" in {
@@ -42,12 +42,12 @@ class SparkUdfsSpec extends SparkBaseSpec {
 
     val preAgg = data
       .groupBy($"key_1", $"key_2")
-      .agg(SparkUdfs.aggStringToHash($"document").as("minhash"))
+      .agg(SparkUdfs256.aggStringToHash($"document").as("minhash"))
 
     val indirectTransform = preAgg
       .groupBy($"key_1")
-      .agg(SparkUdfs.aggHashes($"minhash").as("minhash"))
-      .withColumn("cnt", SparkUdfs.countUniques($"minhash"))
+      .agg(SparkUdfs256.aggHashes($"minhash").as("minhash"))
+      .withColumn("cnt", SparkUdfs256.countUniques($"minhash"))
 
     assertDataFrameNoOrderEquals(aggData, indirectTransform)
   }
@@ -78,7 +78,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
       left
         .as("l")
         .crossJoin(right.as("r"))
-        .withColumn("jaccard", SparkUdfs.jaccard($"l.minhash", $"r.minhash"))
+        .withColumn("jaccard", SparkUdfs256.jaccard($"l.minhash", $"r.minhash"))
         .select($"jaccard")
 
     assertDataFrameApproximateEquals(expectedJaccard, actualJaccard, 1e-3)
@@ -96,7 +96,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
       left
         .as("l")
         .crossJoin(right.as("r"))
-        .withColumn("overlap", SparkUdfs.overlap($"l.minhash", $"r.minhash"))
+        .withColumn("overlap", SparkUdfs256.overlap($"l.minhash", $"r.minhash"))
         .select($"overlap")
 
     assertDataFrameEquals(expectedOverlap, actualOverlap)

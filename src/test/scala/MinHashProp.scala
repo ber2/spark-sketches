@@ -54,6 +54,11 @@ class MinHashProp extends Properties("MinHash") {
 
     val jaccards = Gen.choose[Double](0.1, 1.0)
 
+    val minHashesWithVaryingNumPerms = for {
+      n <- Gen.choose[Short](1, 1024)
+      ls <- longDocuments
+    } yield MinHash.addBatch(MinHash.trivialMinHash(n), ls)
+
     val twoMinHashesDifferentPerms = for {
       n <- Gen.choose[Short](1, 1024)
       m <- Gen.choose[Short](1, 1024)
@@ -116,7 +121,7 @@ class MinHashProp extends Properties("MinHash") {
       relativeError < 0.23
     }
 
-  property("should serialize & deserialize") = forAll(Generators.minHashes) {
+  property("should serialize & deserialize") = forAll(Generators.minHashesWithVaryingNumPerms) {
     (mh: MinHash) =>
       SerializedMinHash(mh.serialized.bytes).deserialize.isEqual(mh)
   }

@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 import scala.math.min
 import java.nio.{ByteBuffer, LongBuffer, Buffer}
 
-import Constants.{maxHash, hashValueByteSize}
+import Constants.{maxHash, bytesInAShort, bytesInALong}
 
 case class MinHash(numPerm: Short, hashValues: Array[Long]) {
   val permutations = new RandomLinearPermutations(numPerm)
@@ -64,7 +64,7 @@ case class MinHash(numPerm: Short, hashValues: Array[Long]) {
   }
 
   def serialized: SerializedMinHash = {
-    val bb = ByteBuffer.allocate(hashValueByteSize * numPerm)
+    val bb = ByteBuffer.allocate(bytesInALong * numPerm)
     hashValues.foreach { x => bb.putLong(x) }
     SerializedMinHash(bb.array)
   }

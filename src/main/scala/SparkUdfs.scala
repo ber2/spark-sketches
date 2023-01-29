@@ -5,11 +5,32 @@ import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
 import org.apache.spark.sql.expressions.Aggregator
 import org.apache.spark.sql.functions.{udf, udaf}
 
-object SparkUdfs {
+object SparkUdfs128 extends SparkUdfs {
+  val numPerm: Short = 128
+}
+
+object SparkUdfs256 extends SparkUdfs {
+  val numPerm: Short = 256
+}
+
+object SparkUdfs512 extends SparkUdfs {
+  val numPerm: Short = 512
+}
+
+trait SparkUdfs extends Serializable {
+
+  def numPerm: Short
+
+  val aggStringToHash = udaf(MinHashPreaggregator)
+  val aggHashes = udaf(MinHashAggregator)
+
+  val countUniques = udf(countUniquesPreUdf(_))
+  val jaccard = udf(jaccardPreUdf(_, _))
+  val overlap = udf(overlapPreUdf(_, _))
 
   private object MinHashPreaggregator
       extends Aggregator[String, MinHash, Array[Byte]] {
-    def zero: MinHash = MinHash.trivialMinHash(Constants.numPerm)
+    def zero: MinHash = MinHash.trivialMinHash(numPerm)
     def reduce(b: MinHash, a: String): MinHash = b.add(a)
     def merge(b1: MinHash, b2: MinHash): MinHash = b1.merge(b2)
     def finish(reduction: MinHash): Array[Byte] = reduction.serialized.bytes
@@ -18,9 +39,10 @@ object SparkUdfs {
   }
 
   private object MinHashAggregator
-      extends Aggregator[SerializedMinHash, MinHash, Array[Byte]] {
-    def zero: MinHash = MinHash.trivialMinHash(Constants.numPerm)
-    def reduce(b: MinHash, a: SerializedMinHash): MinHash = b.merge(a.deserialize)
+      extends Aggregator[Array[Byte], MinHash, Array[Byte]] {
+    def zero: MinHash = MinHash.trivialMinHash(numPerm)
+    def reduce(b: MinHash, a: Array[Byte]): MinHash =
+      b.merge(SerializedMinHash(a).deserialize)
     def merge(b1: MinHash, b2: MinHash): MinHash = b1.merge(b2)
     def finish(reduction: MinHash): Array[Byte] = reduction.serialized.bytes
     def bufferEncoder: Encoder[MinHash] = Encoders.javaSerialization[MinHash]
@@ -56,10 +78,4 @@ object SparkUdfs {
     Array(round(a), round(b), round(o)).min
   }
 
-  val aggStringToHash = udaf(MinHashPreaggregator)
-  val aggHashes = udaf(MinHashAggregator)
-
-  val countUniques = udf(countUniquesPreUdf(_))
-  val jaccard = udf(jaccardPreUdf(_, _))
-  val overlap = udf(overlapPreUdf(_, _))
 }
