@@ -2,9 +2,9 @@ package com.ber2.spark.minhash
 
 import scala.util.Random
 
-import Constants.{numPerm, seed, mersennePrime, maxHash}
+import Constants.{seed, mersennePrime, maxHash}
 
-object RandomLinearPermutations {
+class RandomLinearPermutations(numPerm: Short) extends Serializable {
   private val generator = new Random(seed)
 
   private def nextLong(min: Long, max: Long = mersennePrime): Long =
