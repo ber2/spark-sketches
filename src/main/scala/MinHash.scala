@@ -12,7 +12,7 @@ case class MinHash(numPerm: Short, hashValues: Array[Long]) {
   private def checkCompatibility(other: MinHash): Unit = {
     if (numPerm != other.numPerm)
       throw new IllegalArgumentException(
-        "Cannot compute Jaccard of two MinHashes with different number of permutations"
+        "Cannot compare two MinHashes with different number of permutations"
       )
   }
 
