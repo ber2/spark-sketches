@@ -3,6 +3,7 @@ import numpy.typing as npt
 
 from .constants import MAX_HASH
 
+
 def count_uniques(minhash: npt.NDArray[np.uint64]) -> float:
     l = minhash.shape[0]
     s: float = np.sum(minhash) / (1.0 * MAX_HASH)

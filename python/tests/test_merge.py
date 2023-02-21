@@ -26,4 +26,3 @@ def test_merge_hashes_array_shape(merged_hash):
 
 def test_merge_hashes_array_content(merged_hash, hash_joint):
     assert np.all(merged_hash == hash_joint)
-
