@@ -23,4 +23,4 @@ jobs:
         poetry install
     - name: Bandit
       run: |
-        poetry run bandit .
+        poetry run bandit -r ./src/
