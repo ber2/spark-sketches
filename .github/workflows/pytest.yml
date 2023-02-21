@@ -1,10 +1,10 @@
-name: Run tests
+name: Run Python Tests
 
 on:
   - pull_request
 
 jobs:
-  tests:
+  pytest:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,4 +23,4 @@ jobs:
         poetry install
     - name: Pytest
       run: |
-        poetry run pytest -v --cov=meteobeguda
+        poetry run pytest -v --cov=src
