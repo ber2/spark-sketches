@@ -1,4 +1,4 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.common
 
 import com.holdenkarau.spark.testing.{DataFrameSuiteBase, SharedSparkContext}
 import org.apache.spark.SparkConf

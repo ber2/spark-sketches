@@ -1,6 +1,7 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
 
 import org.apache.spark.sql.DataFrame
+import com.ber2.spark.sketches.common.SparkBaseSpec
 
 class SparkUdfsSpec extends SparkBaseSpec {
 
