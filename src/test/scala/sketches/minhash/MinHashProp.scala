@@ -1,4 +1,4 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
 
 import scala.math.{floor, round, abs}
 import scala.util.{Try, Success, Failure}

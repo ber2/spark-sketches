@@ -1,7 +1,7 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
 
 import scala.math.{round, min}
-import org.apache.spark.sql.{Encoder, Encoders, SparkSession}
+import org.apache.spark.sql.{Encoder, Encoders}
 import org.apache.spark.sql.expressions.Aggregator
 import org.apache.spark.sql.functions.{udf, udaf}
 
@@ -21,14 +21,14 @@ trait SparkUdfs extends Serializable {
 
   def numPerm: Short
 
-  val aggStringToHash = udaf(MinHashPreaggregator)
-  val aggHashes = udaf(MinHashAggregator)
+  val aggStringToHash = udaf(SketchPreaggregator)
+  val aggHashes = udaf(SketchAggregator)
 
   val countUniques = udf(countUniquesPreUdf(_))
   val jaccard = udf(jaccardPreUdf(_, _))
   val overlap = udf(overlapPreUdf(_, _))
 
-  private object MinHashPreaggregator
+  private object SketchPreaggregator
       extends Aggregator[String, MinHash, Array[Byte]] {
     def zero: MinHash = MinHash.trivialMinHash(numPerm)
     def reduce(b: MinHash, a: String): MinHash = b.add(a)
@@ -38,7 +38,7 @@ trait SparkUdfs extends Serializable {
     def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
   }
 
-  private object MinHashAggregator
+  private object SketchAggregator
       extends Aggregator[Array[Byte], MinHash, Array[Byte]] {
     def zero: MinHash = MinHash.trivialMinHash(numPerm)
     def reduce(b: MinHash, a: Array[Byte]): MinHash =

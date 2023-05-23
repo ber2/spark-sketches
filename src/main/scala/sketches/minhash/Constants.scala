@@ -1,4 +1,4 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
 
 object Constants {
   val mersennePrime: Long = (1L << 61) - 1

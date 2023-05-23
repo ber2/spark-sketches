@@ -1,4 +1,6 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
+
+import com.ber2.spark.sketches.common.BaseSpec
 
 trait LinearPermutationsBehavior { this: BaseSpec =>
   def permutationArray(newArray: => Array[Long], minValue: Long, numPerm: Int): Unit = {

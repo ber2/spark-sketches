@@ -1,4 +1,4 @@
-package com.ber2.spark.minhash
+package com.ber2.spark.sketches.minhash
 
 import java.nio.{ByteBuffer, Buffer}
 import Constants.{bytesInAShort, bytesInALong}
