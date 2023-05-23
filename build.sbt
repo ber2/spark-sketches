@@ -14,7 +14,7 @@ lazy val root = (project in file(".")).
       ),
       scalaVersion := "2.12.12"
     )),
-    name := "spark-minhash"
+    name := "spark-sketches"
   )
 
 val libVersions = Map(
