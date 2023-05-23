@@ -1,6 +1,6 @@
 package com.ber2.spark.sketches.theta
 
-import java.nio.{ByteBuffer, Buffer}
+import java.nio.ByteBuffer
 
 case class SerializedThetaSketch(bytes: Array[Byte]) {
   def deserialized: ThetaSketch = {

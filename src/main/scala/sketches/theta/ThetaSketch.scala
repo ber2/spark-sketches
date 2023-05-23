@@ -5,7 +5,7 @@ import scala.util.hashing.MurmurHash3
 
 import java.nio.ByteBuffer
 
-import Constants.{K, M, ALPHA}
+import Constants.{M, ALPHA}
 
 case class ThetaSketch(theta: Double, hashValues: Set[Long]) {
   def update(s: String): ThetaSketch = {
