@@ -1,12 +1,14 @@
 package com.ber2.spark.sketches.theta
 
-import java.nio.ByteBuffer
+import java.nio.{ByteBuffer, Buffer}
 
 case class SerializedThetaSketch(bytes: Array[Byte]) {
   def deserialized: ThetaSketch = {
     val totalBytes = bytes.length
     val bb = ByteBuffer.allocate(totalBytes)
-    bb.put(bytes).rewind
+    val bbb: Buffer = bb
+    bb.put(bytes)
+    bbb.position(0)
     val theta = bb.getDouble
     val length = bb.getInt
 
