@@ -50,6 +50,8 @@ case class ThetaSketch(theta: Double, hashValues: Set[Long]) {
 object ThetaSketch {
   def apply(): ThetaSketch = ThetaSketch(1.0, Set.empty[Long])
 
+  def apply(bytes: Array[Byte]): ThetaSketch = SerializedThetaSketch(bytes).deserialized
+
   def fromStrings(values: Seq[String]): ThetaSketch =
     values.foldLeft(ThetaSketch()) { (th: ThetaSketch, s: String) =>
       th.update(s)
