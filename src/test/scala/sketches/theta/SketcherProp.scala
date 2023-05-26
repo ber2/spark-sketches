@@ -5,7 +5,9 @@ import scala.math.abs
 import org.scalacheck.{Gen, Properties}
 import org.scalacheck.Prop.{forAll, forAllNoShrink}
 
-class ThetaSketchProp extends Properties("ThetaSketch") {
+class SketcherProp extends Properties("ThetaSketch") {
+
+  lazy val sk = new Sketcher
 
   object Generators {
     val length = 1000
@@ -30,18 +32,18 @@ class ThetaSketchProp extends Properties("ThetaSketch") {
     val common = Gen.choose[Int](0, length)
     val largeLength = Gen.choose[Int](length / 100, length * 10)
 
-    def twoSketchesFromCommon(d: Int): (ThetaSketch, ThetaSketch) = {
+    def twoSketchesFromCommon(d: Int): (Theta, Theta) = {
       val (leftDocs, rightDocs) =
         Generators.twoDocumentListsWithGivenIntersection(d)
-      (ThetaSketch.fromStrings(leftDocs), ThetaSketch.fromStrings(rightDocs))
+      (sk.fromStrings(leftDocs), sk.fromStrings(rightDocs))
     }
 
-    def generateSketch(length: Int): ThetaSketch = {
+    def generateSketch(length: Int): Theta = {
       val docs = (0 to length).map(mkDoc)
-      ThetaSketch.fromStrings(docs)
+      sk.fromStrings(docs)
     }
 
-    val largeSketch: Gen[ThetaSketch] = for {
+    val largeSketch: Gen[Theta] = for {
       l <- largeLength
     } yield generateSketch(l)
   }
@@ -49,7 +51,7 @@ class ThetaSketchProp extends Properties("ThetaSketch") {
   property("should have good estimations") =
     forAllNoShrink(Generators.largeLength) { (l: Int) =>
       val sketch = Generators.generateSketch(l)
-      val relErr = abs(sketch.getEstimate - l) / l.toDouble
+      val relErr = abs(sk.getEstimate(sketch) - l) / l.toDouble
       relErr <= 0.05
     }
 
@@ -58,35 +60,34 @@ class ThetaSketchProp extends Properties("ThetaSketch") {
       val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
 
       val expectedEstimate = 2L * Generators.length - d
-      val union = leftSketch.union(rightSketch)
-      union.getEstimate == expectedEstimate
+      val union = sk.union(leftSketch, rightSketch)
+      sk.getEstimate(union) == expectedEstimate
     }
 
   property("should estimate the intersection of two lists") =
     forAll(Generators.common) { (d: Int) =>
       val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
-      val intersection = leftSketch.intersection(rightSketch)
-      intersection.getEstimate == d
+      val intersection = sk.intersection(leftSketch, rightSketch)
+      sk.getEstimate(intersection) == d
     }
 
   property("should estimate the difference of two lists") =
     forAll(Generators.common) { (d: Int) =>
       val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
       val expectedEstimate = Generators.length - d
-      val difference = leftSketch.aNotB(rightSketch)
-      difference.getEstimate == expectedEstimate
+      val difference = sk.aNotB(leftSketch, rightSketch)
+      sk.getEstimate(difference) == expectedEstimate
     }
 
   property("should serialize & deserialize") =
-    forAllNoShrink(Generators.largeSketch) { (th: ThetaSketch) =>
-      val recoveredTh = th.serialized.deserialized
+    forAllNoShrink(Generators.largeSketch) { (th: Theta) =>
+      val recoveredTh = sk.deserialize(sk.serialize(th))
       val thetaMatches = recoveredTh.theta == th.theta 
-      val arrayLengthMatches = recoveredTh.hashValues.size == th.hashValues.size
+      val arrayLengthMatches = recoveredTh.hashes.size == th.hashes.size
       val arraysMatch = 
-        recoveredTh.hashValues
-          .zip(th.hashValues)
-          .map { case (a, b) => a == b }
-          .foldLeft(true)(_ && _)
+        recoveredTh.hashes
+          .zip(th.hashes)
+          .forall { case (a, b) => a == b }
 
       thetaMatches && arrayLengthMatches && arraysMatch
     }

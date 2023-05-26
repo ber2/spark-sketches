@@ -12,41 +12,39 @@ object SparkUdfs extends Serializable {
   val intersection = udf(intersectionPreUdf(_, _))
   val setDifference = udf(setDifferencePreUdf(_, _))
 
+  private val sk = new Sketcher
+
   private object SketchPreaggregator
-      extends Aggregator[String, ThetaSketch, Array[Byte]] {
-    def zero: ThetaSketch = ThetaSketch()
-    def reduce(x: ThetaSketch, s: String): ThetaSketch = x.update(s)
-    def merge(x: ThetaSketch, y: ThetaSketch): ThetaSketch = x.union(y)
-    def finish(x: ThetaSketch): Array[Byte] = x.serialized.bytes
-    def bufferEncoder: Encoder[ThetaSketch] =
-      Encoders.kryo[ThetaSketch]
-    def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
-  }
+      extends Aggregator[String, Theta, Array[Byte]] {
+        def zero: Theta = sk.emptySketch
+        def reduce(b: Theta, a: String): Theta = sk.update(b, a)
+        def merge(b1: Theta, b2: Theta): Theta = sk.union(b1, b2)
+        def finish(reduction: Theta): Array[Byte] = sk.serialize(reduction)
+        def bufferEncoder: Encoder[Theta] = Encoders.kryo[Theta]
+        def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
+      }
 
   private object SketchAggregator
-      extends Aggregator[Array[Byte], ThetaSketch, Array[Byte]] {
-    def zero: ThetaSketch = ThetaSketch()
-    def reduce(x: ThetaSketch, s: Array[Byte]): ThetaSketch =
-      x.union(ThetaSketch(s))
-    def merge(x: ThetaSketch, y: ThetaSketch): ThetaSketch = x.union(y)
-    def finish(x: ThetaSketch): Array[Byte] = x.serialized.bytes
-    def bufferEncoder: Encoder[ThetaSketch] =
-      Encoders.kryo[ThetaSketch]
-    def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
-  }
+      extends Aggregator[Array[Byte], Theta, Array[Byte]] {
+        def zero: Theta = sk.emptySketch
+        def reduce(b: Theta, a: Array[Byte]): Theta = sk.union(b, sk.deserialize(a))
+        def merge(b1: Theta, b2: Theta): Theta = sk.union(b1, b2)
+        def finish(reduction: Theta): Array[Byte] = sk.serialize(reduction)
+        def bufferEncoder: Encoder[Theta] = Encoders.kryo[Theta]
+        def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
+      }
 
-  private def getEstimatePreUdf(x: Array[Byte]): Long = ThetaSketch(
-    x
-  ).getEstimate
+  private def getEstimatePreUdf(x: Array[Byte]): Long =
+    sk.getEstimate(sk.deserialize(x))
 
   private def intersectionPreUdf(
       x: Array[Byte],
       y: Array[Byte]
-  ): Array[Byte] = ThetaSketch(x).intersection(ThetaSketch(y)).serialized.bytes
+  ): Array[Byte] = sk.serialize(sk.intersection(sk.deserialize(x), sk.deserialize(y)))
 
   private def setDifferencePreUdf(
       x: Array[Byte],
       y: Array[Byte]
-  ): Array[Byte] = ThetaSketch(x).aNotB(ThetaSketch(y)).serialized.bytes
+  ): Array[Byte] = sk.serialize(sk.aNotB(sk.deserialize(x), sk.deserialize(y)))
 
 }
