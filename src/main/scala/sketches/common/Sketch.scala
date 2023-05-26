@@ -5,18 +5,10 @@ trait Sketch[A] extends Serializable {
   def update(a: A, s: String): A
   def union(a: A, b: A): A
   def getEstimate(a: A): Long
-  
+
   def fromStrings(ss: Seq[String]): A =
     ss.foldLeft(emptySketch) { (a: A, s: String) => update(a, s) }
 
   def serialize(a: A): Array[Byte]
   def deserialize(xs: Array[Byte]): A
-}
-
-trait IntersectionSketch[A] extends Sketch[A] {
-  def intersection(a: A, b: A): A
-}
-
-trait SetDifferenceSketch[A] extends Sketch[A] {
-  def aNotB(a: A, b: A): A
 }
