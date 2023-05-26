@@ -3,7 +3,6 @@ package com.ber2.spark.sketches.theta
 import org.apache.spark.sql.DataFrame
 import com.ber2.spark.sketches.common.SparkBaseSpec
 
-
 class SparkUdfsSpec extends SparkBaseSpec {
   behavior of "Spark Minhash UDFs and UDAFs"
 
@@ -113,4 +112,3 @@ class SparkUdfsSpec extends SparkBaseSpec {
     assertDataFrameEquals(expectedDifference, actualDifference)
   }
 }
-
