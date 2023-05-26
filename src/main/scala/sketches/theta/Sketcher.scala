@@ -9,7 +9,9 @@ import com.ber2.spark.sketches.common.{IntersectionSketch, SetDifferenceSketch}
 
 import Constants.{M, ALPHA}
 
-class Sketcher extends IntersectionSketch[Theta] with SetDifferenceSketch[Theta] {
+class Sketcher
+    extends IntersectionSketch[Theta]
+    with SetDifferenceSketch[Theta] {
 
   def emptySketch: Theta = Theta(1.0, Set.empty[Long])
 

@@ -82,9 +82,9 @@ class SketcherProp extends Properties("ThetaSketch") {
   property("should serialize & deserialize") =
     forAllNoShrink(Generators.largeSketch) { (th: Theta) =>
       val recoveredTh = sk.deserialize(sk.serialize(th))
-      val thetaMatches = recoveredTh.theta == th.theta 
+      val thetaMatches = recoveredTh.theta == th.theta
       val arrayLengthMatches = recoveredTh.hashes.size == th.hashes.size
-      val arraysMatch = 
+      val arraysMatch =
         recoveredTh.hashes
           .zip(th.hashes)
           .forall { case (a, b) => a == b }
