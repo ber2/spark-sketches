@@ -3,11 +3,11 @@ package com.ber2.spark.sketches.theta
 import java.nio.{ByteBuffer, Buffer}
 
 import scala.util.hashing.MurmurHash3
-import scala.math.{max, min, pow, round}
+import scala.math.{max, min, pow, round, abs}
 
 import com.ber2.spark.sketches.common.{IntersectionSketch, SetDifferenceSketch}
 
-import Constants.{M, ALPHA}
+import Constants.{M, ALPHA, MAX_VALUE}
 
 class Sketcher
     extends IntersectionSketch[Theta]
@@ -16,19 +16,24 @@ class Sketcher
   def emptySketch: Theta = Theta(1.0, Set.empty[Long])
 
   def update(a: Theta, s: String): Theta = {
-    val hash = MurmurHash3.bytesHash(s.getBytes).toLong
-    val i = hash & ((1 << M) - 1)
-    val r = (hash >>> M) | (1L << 63 - M)
+    val hash = abs(MurmurHash3.bytesHash(s.getBytes).toLong)
 
-    val th = min(pow(ALPHA, i), a.theta)
-    val hs = (a.hashes + r).filter(_ < th)
+    val prefix = hash & (M - 1)
+    val suffix = hash & (-M)
 
-    Theta(th, hs)
+    val i = round(Math.log(a.theta) / Math.log(ALPHA))
+
+    if (suffix.toDouble / MAX_VALUE.toDouble < pow(ALPHA, i)) {
+      val th = pow(ALPHA, i + 1) 
+      val hs = (a.hashes + prefix).filter(_ < th * MAX_VALUE)
+      Theta(th, hs)
+    }
+    else a
   }
 
   def union(a: Theta, b: Theta): Theta = {
     val th = min(a.theta, b.theta)
-    val hs = (a.hashes ++ b.hashes).filter(_ < th)
+    val hs = (a.hashes ++ b.hashes).filter(_  < th * MAX_VALUE)
     Theta(th, hs)
   }
 
