@@ -24,16 +24,15 @@ class Sketcher
     val i = round(Math.log(a.theta) / Math.log(ALPHA))
 
     if (suffix.toDouble / MAX_VALUE.toDouble < pow(ALPHA, i)) {
-      val th = pow(ALPHA, i + 1) 
+      val th = pow(ALPHA, i + 1)
       val hs = (a.hashes + prefix).filter(_ < th * MAX_VALUE)
       Theta(th, hs)
-    }
-    else a
+    } else a
   }
 
   def union(a: Theta, b: Theta): Theta = {
     val th = min(a.theta, b.theta)
-    val hs = (a.hashes ++ b.hashes).filter(_  < th * MAX_VALUE)
+    val hs = (a.hashes ++ b.hashes).filter(_ < th * MAX_VALUE)
     Theta(th, hs)
   }
 
@@ -65,8 +64,8 @@ class Sketcher
   }
 
   def intersection(a: Theta, b: Theta): Theta = {
-    val th = max(a.theta, b.theta)
-    val hs = (a.hashes intersect b.hashes)
+    val th = min(a.theta, b.theta)
+    val hs = (a.hashes intersect b.hashes).filter(_ < th * MAX_VALUE)
     Theta(th, hs)
   }
 
