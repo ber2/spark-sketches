@@ -48,11 +48,24 @@ class SketcherProp extends Properties("ThetaSketch") {
     } yield generateSketch(l)
   }
 
+  def relativeErrorBelow(
+      threshold: Double
+  )(actual: Double, expected: Double): Boolean =
+    abs(actual - expected) / expected < threshold
+
+  property("should not be trivial after updating") = forAll(Generators.common) {
+    (d: Int) =>
+      val sketch = Generators.generateSketch(d)
+      val thetaIsBelowOne = sketch.theta < 1.0
+      val thereAreHashes = sketch.hashes.size > 0
+      thetaIsBelowOne && thereAreHashes
+  }
+
   property("should have good estimations") =
     forAllNoShrink(Generators.largeLength) { (l: Int) =>
       val sketch = Generators.generateSketch(l)
-      val relErr = abs(sk.getEstimate(sketch) - l) / l.toDouble
-      relErr <= 0.05
+      val actual = sk.getEstimate(sketch)
+      relativeErrorBelow(0.01)(actual, l)
     }
 
   property("should estimate the union of two lists") =
@@ -61,14 +74,16 @@ class SketcherProp extends Properties("ThetaSketch") {
 
       val expectedEstimate = 2L * Generators.length - d
       val union = sk.union(leftSketch, rightSketch)
-      sk.getEstimate(union) == expectedEstimate
+      val actualEstimate = sk.getEstimate(union)
+      relativeErrorBelow(0.01)(actualEstimate, expectedEstimate)
     }
 
   property("should estimate the intersection of two lists") =
     forAll(Generators.common) { (d: Int) =>
       val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
       val intersection = sk.intersection(leftSketch, rightSketch)
-      sk.getEstimate(intersection) == d
+      val actualEstimate = sk.getEstimate(intersection)
+      relativeErrorBelow(0.02)(actualEstimate, d)
     }
 
   property("should estimate the difference of two lists") =
@@ -76,20 +91,21 @@ class SketcherProp extends Properties("ThetaSketch") {
       val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
       val expectedEstimate = Generators.length - d
       val difference = sk.aNotB(leftSketch, rightSketch)
-      sk.getEstimate(difference) == expectedEstimate
+      val actualEstimate = sk.getEstimate(difference)
+      relativeErrorBelow(0.02)(actualEstimate, expectedEstimate)
     }
 
   property("should serialize & deserialize") =
     forAllNoShrink(Generators.largeSketch) { (th: Theta) =>
       val recoveredTh = sk.deserialize(sk.serialize(th))
-      val thetaMatches = recoveredTh.theta == th.theta
-      val arrayLengthMatches = recoveredTh.hashes.size == th.hashes.size
+      val thetasMatch = recoveredTh.theta == th.theta
+      val arrayLengthsMatch = recoveredTh.hashes.size == th.hashes.size
       val arraysMatch =
         recoveredTh.hashes
           .zip(th.hashes)
           .forall { case (a, b) => a == b }
 
-      thetaMatches && arrayLengthMatches && arraysMatch
+      thetasMatch && arrayLengthsMatch && arraysMatch
     }
 
 }

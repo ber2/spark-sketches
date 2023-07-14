@@ -13,7 +13,7 @@ class SerializedMinHashSpec extends BaseSpec {
     val bytes = Array[Byte](0, 0, 0, 0, -1, -1, -1, -1, 0)
     val smh = SerializedMinHash(bytes)
 
-    an [IndexOutOfBoundsException] should be thrownBy (smh.deserialize)
+    an[IndexOutOfBoundsException] should be thrownBy (smh.deserialize)
   }
 
   it should "deserialize an array of ones" in {
