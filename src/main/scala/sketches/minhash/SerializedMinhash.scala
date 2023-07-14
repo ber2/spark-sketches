@@ -3,12 +3,13 @@ package com.ber2.spark.sketches.minhash
 import java.nio.{ByteBuffer, Buffer}
 import Constants.{bytesInAShort, bytesInALong}
 
-
 case class SerializedMinHash(bytes: Array[Byte]) {
 
   def deserialize: MinHash = {
     if (bytes.length % bytesInALong != 0) {
-      throw new IndexOutOfBoundsException("Cannot convert byte array to array of Long")
+      throw new IndexOutOfBoundsException(
+        "Cannot convert byte array to array of Long"
+      )
     }
 
     val numPerm = (bytes.length / bytesInALong).toShort

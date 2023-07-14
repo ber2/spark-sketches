@@ -9,6 +9,6 @@ object Sha1Hash32 {
     val croppedDigestedBytes = md.digest(input).take(4)
 
     val bb = ByteBuffer.wrap(croppedDigestedBytes)
-    bb.order(ByteOrder.LITTLE_ENDIAN).getInt & 0xFFFFFFFFL
+    bb.order(ByteOrder.LITTLE_ENDIAN).getInt & 0xffffffffL
   }
 }

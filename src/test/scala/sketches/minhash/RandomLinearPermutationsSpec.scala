@@ -3,7 +3,11 @@ package com.ber2.spark.sketches.minhash
 import com.ber2.spark.sketches.common.BaseSpec
 
 trait LinearPermutationsBehavior { this: BaseSpec =>
-  def permutationArray(newArray: => Array[Long], minValue: Long, numPerm: Int): Unit = {
+  def permutationArray(
+      newArray: => Array[Long],
+      minValue: Long,
+      numPerm: Int
+  ): Unit = {
     it should "have expected length" in {
       newArray.length should equal(numPerm)
     }

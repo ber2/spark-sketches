@@ -121,27 +121,31 @@ class MinHashProp extends Properties("MinHash") {
       relativeError < 0.23
     }
 
-  property("should serialize & deserialize") = forAll(Generators.minHashesWithVaryingNumPerms) {
-    (mh: MinHash) =>
+  property("should serialize & deserialize") =
+    forAll(Generators.minHashesWithVaryingNumPerms) { (mh: MinHash) =>
       SerializedMinHash(mh.serialized.bytes).deserialize.isEqual(mh)
-  }
+    }
 
-  property("should fail to merge on distinct permutation numbers") = forAll(Generators.twoMinHashesDifferentPerms) {
-    case (mh1: MinHash, mh2: MinHash) => {
-      val result = Try(mh1.merge(mh2))
-      result match {
-        case Success(mh) => mh1.numPerm == mh2.numPerm && mh.numPerm == mh1.numPerm
-        case Failure(_) => true 
+  property("should fail to merge on distinct permutation numbers") =
+    forAll(Generators.twoMinHashesDifferentPerms) {
+      case (mh1: MinHash, mh2: MinHash) => {
+        val result = Try(mh1.merge(mh2))
+        result match {
+          case Success(mh) =>
+            mh1.numPerm == mh2.numPerm && mh.numPerm == mh1.numPerm
+          case Failure(_) => true
+        }
       }
     }
-  }
 
-  property("should fail to compute jaccard index on distinct permutation numbers") = forAll(Generators.twoMinHashesDifferentPerms) {
+  property(
+    "should fail to compute jaccard index on distinct permutation numbers"
+  ) = forAll(Generators.twoMinHashesDifferentPerms) {
     case (mh1: MinHash, mh2: MinHash) => {
       val result = Try(mh1.jaccard(mh2))
       result match {
         case Success(j) => mh1.numPerm == mh2.numPerm && j >= 0.0 && j <= 1.0
-        case Failure(_) => true 
+        case Failure(_) => true
       }
     }
   }
