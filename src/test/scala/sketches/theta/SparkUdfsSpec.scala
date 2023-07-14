@@ -53,10 +53,9 @@ class SparkUdfsSpec extends SparkBaseSpec {
 
     val indirectTransform = preAgg
       .groupBy($"key_1")
-      .agg(aggSketches($"theta_sketch").as("theta_sketch"))
-      .withColumn("cnt", getEstimate($"theta_sketch"))
+      .agg(getEstimate(aggSketches($"theta_sketch")).as("cnt"))
 
-    assertDataFrameNoOrderEquals(aggData, indirectTransform)
+    assertDataFrameNoOrderEquals(aggData.drop($"theta_sketch"), indirectTransform)
   }
 
   it should "count uniques" in {
