@@ -2,9 +2,16 @@ package com.ber2.spark.sketches.theta
 
 import org.apache.spark.sql.DataFrame
 import com.ber2.spark.sketches.common.SparkBaseSpec
+import com.ber2.spark.sketches.theta.SparkUdfs.{
+  stringsToSketch,
+  aggSketches,
+  getEstimate,
+  intersection,
+  setDifference
+}
 
 class SparkUdfsSpec extends SparkBaseSpec {
-  behavior of "Spark Minhash UDFs and UDAFs"
+  behavior of "Spark Theta UDFs and UDAFs"
 
   lazy val data: DataFrame = {
     import spark.implicits._
@@ -33,8 +40,8 @@ class SparkUdfsSpec extends SparkBaseSpec {
 
     data
       .groupBy($"key_1")
-      .agg(SparkUdfs.stringsToSketch($"document").as("minhash"))
-      .withColumn("cnt", SparkUdfs.getEstimate($"minhash"))
+      .agg(stringsToSketch($"document").as("theta_sketch"))
+      .withColumn("cnt", getEstimate($"theta_sketch"))
   }
 
   it should "aggregate and merge" in {
@@ -42,12 +49,12 @@ class SparkUdfsSpec extends SparkBaseSpec {
 
     val preAgg = data
       .groupBy($"key_1", $"key_2")
-      .agg(SparkUdfs.stringsToSketch($"document").as("minhash"))
+      .agg(stringsToSketch($"document").as("theta_sketch"))
 
     val indirectTransform = preAgg
       .groupBy($"key_1")
-      .agg(SparkUdfs.aggSketches($"minhash").as("minhash"))
-      .withColumn("cnt", SparkUdfs.getEstimate($"minhash"))
+      .agg(aggSketches($"theta_sketch").as("theta_sketch"))
+      .withColumn("cnt", getEstimate($"theta_sketch"))
 
     assertDataFrameNoOrderEquals(aggData, indirectTransform)
   }
@@ -61,7 +68,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
     ).toDF("key_1", "cnt")
 
     val actualCounts = aggData
-      .drop($"minhash")
+      .drop($"theta_sketch")
 
     assertDataFrameNoOrderEquals(expectedCounts, actualCounts)
   }
@@ -80,8 +87,8 @@ class SparkUdfsSpec extends SparkBaseSpec {
         .crossJoin(right.as("r"))
         .withColumn(
           "overlap",
-          SparkUdfs.getEstimate(
-            SparkUdfs.intersection($"l.minhash", $"r.minhash")
+          getEstimate(
+            intersection($"l.theta_sketch", $"r.theta_sketch")
           )
         )
         .select($"overlap")
@@ -103,8 +110,8 @@ class SparkUdfsSpec extends SparkBaseSpec {
         .crossJoin(right.as("r"))
         .withColumn(
           "difference",
-          SparkUdfs.getEstimate(
-            SparkUdfs.setDifference($"l.minhash", $"r.minhash")
+          getEstimate(
+            setDifference($"l.theta_sketch", $"r.theta_sketch")
           )
         )
         .select($"difference")
