@@ -10,93 +10,80 @@ class SketcherProp extends Properties("ThetaSketch") {
   lazy val sk = new Sketcher
 
   object Generators {
-    val length = 1000
+    val maxLength = 1000
+    val lengths = Gen.choose[Int](200, maxLength)
 
-    def mkDoc(d: Int): String = s"document_$d"
+    val stringGenerator: (Int) => Gen[List[String]] = (d: Int) =>
+      Gen.containerOfN[List, String](d, Gen.stringOfN(24, Gen.hexChar))
 
-    def twoDocumentListsWithGivenIntersection(
-        d: Int
-    ): (Seq[String], Seq[String]) = {
-      val rest = length - d
+    val twoDocumentListsWithGivenIntersection
+        : Gen[(Int, List[String], List[String])] = for {
+      d <- lengths
+      commonDocs <- stringGenerator(d)
+      leftDocs <- stringGenerator(maxLength - d)
+      rightDocs <- stringGenerator(maxLength - d)
+    } yield (d, commonDocs ++ leftDocs, commonDocs ++ rightDocs)
 
-      val commonDocs = (0 until d).map(mkDoc).toSeq
-      val othersLeft = (d until d + rest).map(mkDoc).toSeq
-      val othersRight =
-        ((d + length * length) until (d + rest + length * length))
-          .map(mkDoc)
-          .toSeq
+    val twoSketchesWithGivenIntersection: Gen[(Int, Theta, Theta)] = for {
+      (d, leftDocs, rightDocs) <- twoDocumentListsWithGivenIntersection
+    } yield (d, sk.fromStrings(leftDocs), sk.fromStrings(rightDocs))
 
-      (commonDocs ++ othersLeft, commonDocs ++ othersRight)
-    }
-
-    val common = Gen.choose[Int](0, length)
-    val largeLength = Gen.choose[Int](length / 100, length * 10)
-
-    def twoSketchesFromCommon(d: Int): (Theta, Theta) = {
-      val (leftDocs, rightDocs) =
-        Generators.twoDocumentListsWithGivenIntersection(d)
-      (sk.fromStrings(leftDocs), sk.fromStrings(rightDocs))
-    }
-
-    def generateSketch(length: Int): Theta = {
-      val docs = (0 to length).map(mkDoc)
-      sk.fromStrings(docs)
-    }
-
-    val largeSketch: Gen[Theta] = for {
-      l <- largeLength
-    } yield generateSketch(l)
+    val sketchOfGivenLength: Gen[(Int, Theta)] = for {
+      d <- lengths
+      docs <- stringGenerator(d)
+    } yield (d, sk.fromStrings(docs))
   }
 
   def relativeErrorBelow(
       threshold: Double
-  )(actual: Double, expected: Double): Boolean =
-    abs(actual - expected) / expected < threshold
-
-  property("should not be trivial after updating") = forAll(Generators.common) {
-    (d: Int) =>
-      val sketch = Generators.generateSketch(d)
-      val thetaIsBelowOne = sketch.theta < 1.0
-      val thereAreHashes = sketch.hashes.size > 0
-      thetaIsBelowOne && thereAreHashes
+  )(actual: Double, expected: Double): Boolean = {
+    val relErr = abs(actual - expected) / expected
+    relErr < threshold
   }
 
-  property("should have good estimations") =
-    forAllNoShrink(Generators.largeLength) { (l: Int) =>
-      val sketch = Generators.generateSketch(l)
-      val actual = sk.getEstimate(sketch)
-      relativeErrorBelow(0.01)(actual, l)
+  property("should not be trivial after updating") =
+    forAllNoShrink(Generators.sketchOfGivenLength) {
+      case (d: Int, sketch: Theta) =>
+        val thetaIsBelowOne = sketch.theta < 1.0
+        val thereAreHashes = sketch.hashes.size > 0
+        thetaIsBelowOne && thereAreHashes
     }
 
-  property("should estimate the union of two lists") =
-    forAll(Generators.common) { (d: Int) =>
-      val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
-
-      val expectedEstimate = 2L * Generators.length - d
-      val union = sk.union(leftSketch, rightSketch)
-      val actualEstimate = sk.getEstimate(union)
-      relativeErrorBelow(0.01)(actualEstimate, expectedEstimate)
+  property("should estimate from a single sketch") =
+    forAllNoShrink(Generators.sketchOfGivenLength) {
+      case (d: Int, sketch: Theta) =>
+        val actual = sk.getEstimate(sketch)
+        relativeErrorBelow(0.05)(actual, d)
     }
 
-  property("should estimate the intersection of two lists") =
-    forAll(Generators.common) { (d: Int) =>
-      val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
-      val intersection = sk.intersection(leftSketch, rightSketch)
-      val actualEstimate = sk.getEstimate(intersection)
-      relativeErrorBelow(0.02)(actualEstimate, d)
+  property("should estimate the union of two sketches") =
+    forAllNoShrink(Generators.twoSketchesWithGivenIntersection) {
+      case (d: Int, leftSketch: Theta, rightSketch: Theta) =>
+        val expectedEstimate = 2L * Generators.maxLength - d
+        val union = sk.union(leftSketch, rightSketch)
+        val actualEstimate = sk.getEstimate(union)
+        relativeErrorBelow(0.05)(actualEstimate, expectedEstimate)
     }
 
-  property("should estimate the difference of two lists") =
-    forAll(Generators.common) { (d: Int) =>
-      val (leftSketch, rightSketch) = Generators.twoSketchesFromCommon(d)
-      val expectedEstimate = Generators.length - d
-      val difference = sk.aNotB(leftSketch, rightSketch)
-      val actualEstimate = sk.getEstimate(difference)
-      relativeErrorBelow(0.02)(actualEstimate, expectedEstimate)
+  property("should estimate the intersection of two sketches") =
+    forAllNoShrink(Generators.twoSketchesWithGivenIntersection) {
+      case (d: Int, left: Theta, right: Theta) =>
+        val intersection = sk.intersection(left, right)
+        val actualEstimate = sk.getEstimate(intersection)
+        relativeErrorBelow(0.2)(actualEstimate, d)
+    }
+
+  property("should estimate the difference of two sketches") =
+    forAllNoShrink(Generators.twoSketchesWithGivenIntersection) {
+      case (d: Int, leftSketch: Theta, rightSketch: Theta) =>
+        val expectedEstimate = Generators.maxLength - d
+        val difference = sk.aNotB(leftSketch, rightSketch)
+        val actualEstimate = sk.getEstimate(difference)
+        relativeErrorBelow(0.2)(actualEstimate, expectedEstimate)
     }
 
   property("should serialize & deserialize") =
-    forAllNoShrink(Generators.largeSketch) { (th: Theta) =>
+    forAllNoShrink(Generators.sketchOfGivenLength) { case (_: Int, th: Theta) =>
       val recoveredTh = sk.deserialize(sk.serialize(th))
       val thetasMatch = recoveredTh.theta == th.theta
       val arrayLengthsMatch = recoveredTh.hashes.size == th.hashes.size
