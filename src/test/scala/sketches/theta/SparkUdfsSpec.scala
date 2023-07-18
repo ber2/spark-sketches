@@ -44,6 +44,8 @@ class SparkUdfsSpec extends SparkBaseSpec {
       .withColumn("cnt", getEstimate($"theta_sketch"))
   }
 
+  val tol = 0.001
+
   it should "aggregate and merge" in {
     import spark.implicits._
 
@@ -54,22 +56,26 @@ class SparkUdfsSpec extends SparkBaseSpec {
     val indirectTransform = preAgg
       .groupBy($"key_1")
       .agg(getEstimate(aggSketches($"theta_sketch")).as("cnt"))
+      .select($"key_1", $"cnt")
 
-    assertDataFrameNoOrderEquals(aggData.drop($"theta_sketch"), indirectTransform)
+    assertDataFrameNoOrderEquals(
+      aggData.select($"key_1", $"cnt"),
+      indirectTransform
+    )
   }
 
   it should "count uniques" in {
     import spark.implicits._
 
     val expectedCounts = Seq(
-      ("key_1_1", 7L),
-      ("key_1_2", 8L)
+      ("key_1_2", 8.0),
+      ("key_1_1", 7.0)
     ).toDF("key_1", "cnt")
 
     val actualCounts = aggData
       .drop($"theta_sketch")
 
-    assertDataFrameNoOrderEquals(expectedCounts, actualCounts)
+    assertDataFrameApproximateEquals(expectedCounts, actualCounts, tol)
   }
 
   it should "compute overlaps" in {
@@ -78,7 +84,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
     val left = aggData.filter($"key_1" === "key_1_1").drop($"cnt")
     val right = aggData.filter($"key_1" === "key_1_2").drop($"cnt")
 
-    val expectedOverlap = Seq(4L).toDF("overlap")
+    val expectedOverlap = Seq(4.0).toDF("overlap")
 
     val actualOverlap =
       left
@@ -92,7 +98,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
         )
         .select($"overlap")
 
-    assertDataFrameEquals(expectedOverlap, actualOverlap)
+    assertDataFrameApproximateEquals(expectedOverlap, actualOverlap, tol)
   }
 
   it should "compute set differences" in {
@@ -101,7 +107,7 @@ class SparkUdfsSpec extends SparkBaseSpec {
     val left = aggData.filter($"key_1" === "key_1_1").drop($"cnt")
     val right = aggData.filter($"key_1" === "key_1_2").drop($"cnt")
 
-    val expectedDifference = Seq(3L).toDF("difference")
+    val expectedDifference = Seq(3.0).toDF("difference")
 
     val actualDifference =
       left
@@ -115,6 +121,6 @@ class SparkUdfsSpec extends SparkBaseSpec {
         )
         .select($"difference")
 
-    assertDataFrameEquals(expectedDifference, actualDifference)
+    assertDataFrameApproximateEquals(expectedDifference, actualDifference, tol)
   }
 }

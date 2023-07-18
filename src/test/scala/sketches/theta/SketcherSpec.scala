@@ -19,7 +19,7 @@ class SketcherSpec extends BaseSpec {
 
   it should "have a non-zero estimate when updated with distinct values" in {
     val ts = sk.fromStrings(Seq("value1", "value2"))
-    sk.getEstimate(ts) should be > 0L
+    sk.getEstimate(ts) should be > 0.0
   }
 
   it should "have a higher estimate when updated with more distinct values" in {
@@ -30,17 +30,17 @@ class SketcherSpec extends BaseSpec {
 
   it should "produce estimate 0 when united with itself" in {
     val result = sk.union(emptyTs, emptyTs)
-    sk.getEstimate(result) should ===(0L)
+    sk.getEstimate(result) should ===(0.0)
   }
 
   it should "produce estimate 0 when intersected with itself" in {
     val result = sk.intersection(emptyTs, emptyTs)
-    sk.getEstimate(result) should ===(0L)
+    sk.getEstimate(result) should ===(0.0)
   }
 
   it should "produce estimate 0 when diff'd with itself" in {
     val result = sk.aNotB(emptyTs, emptyTs)
-    sk.getEstimate(result) should ===(0L)
+    sk.getEstimate(result) should ===(0.0)
   }
 
 }

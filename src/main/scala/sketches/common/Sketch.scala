@@ -4,7 +4,7 @@ trait Sketch[A] extends Serializable {
   def emptySketch: A
   def update(a: A, s: String): A
   def union(a: A, b: A): A
-  def getEstimate(a: A): Long
+  def getEstimate(a: A): Double
 
   def fromStrings(ss: Seq[String]): A =
     ss.foldLeft(emptySketch) { (a: A, s: String) => update(a, s) }

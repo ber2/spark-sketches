@@ -34,7 +34,7 @@ object SparkUdfs extends Serializable {
     def outputEncoder: Encoder[Array[Byte]] = Encoders.BINARY
   }
 
-  private def getEstimatePreUdf(x: Array[Byte]): Long =
+  private def getEstimatePreUdf(x: Array[Byte]): Double =
     sk.getEstimate(sk.deserialize(x))
 
   private def intersectionPreUdf(

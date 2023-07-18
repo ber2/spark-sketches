@@ -36,7 +36,7 @@ class Sketcher
     Theta(th, hs)
   }
 
-  def getEstimate(a: Theta): Long = round(a.hashes.size.toDouble / a.theta)
+  def getEstimate(a: Theta): Double = a.hashes.size.toDouble / a.theta
 
   def serialize(a: Theta): Array[Byte] = {
     val l = a.hashes.size
