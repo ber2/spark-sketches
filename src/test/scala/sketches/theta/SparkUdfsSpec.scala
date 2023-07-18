@@ -56,9 +56,10 @@ class SparkUdfsSpec extends SparkBaseSpec {
     val indirectTransform = preAgg
       .groupBy($"key_1")
       .agg(getEstimate(aggSketches($"theta_sketch")).as("cnt"))
+      .select($"key_1", $"cnt")
 
     assertDataFrameNoOrderEquals(
-      aggData.drop($"theta_sketch"),
+      aggData.select($"key_1", $"cnt"),
       indirectTransform
     )
   }
