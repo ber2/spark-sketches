@@ -9,5 +9,4 @@ class Theta:
     hashes: Set[np.int64]
 
 
-def empty_sketch() -> Theta:
-    return Theta(0.0, set())
+empty_sketch = Theta(1.0, set())

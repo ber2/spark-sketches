@@ -1,3 +1,5 @@
-K = 12
+K = 24
 M = 1 << K
 ALPHA = M / (M + 1)
+MAX_VALUE = 2130706432.0
+# MAX_VALUE = 2147483647.0

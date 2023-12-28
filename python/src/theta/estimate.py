@@ -2,4 +2,4 @@ from .theta import Theta
 
 
 def get_estimate(a: Theta) -> float:
-    return 0.0
+    return len(a.hashes) / a.theta

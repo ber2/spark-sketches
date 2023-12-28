@@ -5,32 +5,6 @@ from theta.theta import Theta
 
 
 @pytest.fixture
-def serialized_theta_gb() -> bytes:
-    with open("tests/theta/resources/gb.bin", "rb") as fp:
-        data_bin = fp.read()
-
-    return data_bin
-
-
-@pytest.fixture
-def theta_gb(serialized_theta_gb) -> Theta:
-    return deserialize(serialized_theta_gb)
-
-
-@pytest.fixture
-def serialized_theta_fr() -> bytes:
-    with open("tests/theta/resources/fr.bin", "rb") as fp:
-        data_bin = fp.read()
-
-    return data_bin
-
-
-@pytest.fixture
-def theta_fr(serialized_theta_fr) -> Theta:
-    return deserialize(serialized_theta_fr)
-
-
-@pytest.fixture
 def serialized_joint_theta() -> bytes:
     with open("tests/theta/resources/joint.bin", "rb") as fp:
         data_bin = fp.read()
@@ -41,3 +15,17 @@ def serialized_joint_theta() -> bytes:
 @pytest.fixture
 def joint_theta(serialized_joint_theta) -> Theta:
     return deserialize(serialized_joint_theta)
+
+
+def load_sketch(key: str) -> Theta:
+    with open(f"tests/theta/resources/{key}.bin", "rb") as fp:
+        sketch = fp.read()
+    return deserialize(sketch)
+
+
+def compare_floats(expected: float, actual: float, tol: float = 1e-2):
+    assert abs(expected - actual) < tol
+
+
+def compare_floats_rel(expected: float, actual: float, tol: float = 1e-2):
+    assert abs(expected - actual) / abs(actual) < tol
