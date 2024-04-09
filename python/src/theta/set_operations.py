@@ -7,26 +7,28 @@ from .theta import Theta, empty_sketch
 from .constants import MAX_VALUE
 
 
-def union(sketches: List[Theta]) -> Theta:
-    min_theta = 1.0
-    all_hashes: Set[np.int64] = set()
-    for a in sketches:
-        if a.theta < min_theta:
-            min_theta = a.theta
-        all_hashes = all_hashes.union(a.hashes)
+def union(a: Theta, b: Theta) -> Theta:
+    theta = min(a.theta, b.theta)
 
-    hashes_to_keep: Set[np.int64] = set()
-    for h in all_hashes:
-        if h < min_theta * MAX_VALUE:
-            hashes_to_keep.add(h)
+    hashes = set(filter(lambda x: x < theta * MAX_VALUE, a.hashes.union(b.hashes)))
+    return Theta(theta, hashes)
 
-    print(len(all_hashes), len(hashes_to_keep))
-    return Theta(min_theta, hashes_to_keep)
+
+def multiple_union(sketches: List[Theta]) -> Theta:
+    result = empty_sketch
+    for sketch in sketches:
+        result = union(result, sketch)
+    return result
 
 
 def intersection(a: Theta, b: Theta) -> Theta:
-    return empty_sketch
+    theta = min(a.theta, b.theta)
+    hashes = set(
+        filter(lambda x: x < theta * MAX_VALUE, a.hashes.intersection(b.hashes))
+    )
+    return Theta(theta, hashes)
 
 
 def a_not_b(a: Theta, b: Theta) -> Theta:
-    return empty_sketch
+    hashes = a.hashes.difference(b.hashes)
+    return Theta(a.theta, hashes)

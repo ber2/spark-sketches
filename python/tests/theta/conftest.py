@@ -22,10 +22,3 @@ def load_sketch(key: str) -> Theta:
         sketch = fp.read()
     return deserialize(sketch)
 
-
-def compare_floats(expected: float, actual: float, tol: float = 1e-2):
-    assert abs(expected - actual) < tol
-
-
-def compare_floats_rel(expected: float, actual: float, tol: float = 1e-2):
-    assert abs(expected - actual) / abs(actual) < tol
