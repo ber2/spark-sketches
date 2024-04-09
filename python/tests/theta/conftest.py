@@ -21,4 +21,3 @@ def load_sketch(key: str) -> Theta:
     with open(f"tests/theta/resources/{key}.bin", "rb") as fp:
         sketch = fp.read()
     return deserialize(sketch)
-

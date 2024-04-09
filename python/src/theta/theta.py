@@ -3,6 +3,7 @@ from typing import Set
 
 import numpy as np
 
+
 @dataclass
 class Theta:
     theta: float
