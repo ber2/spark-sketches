@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "minhash"
+name = "spark-sketches"
 version = "0.3.0"
 description = ""
 authors = ["Alberto Camara <camara@protonmail.com>"]
